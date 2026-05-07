@@ -40,3 +40,29 @@ static/     # ポータル UI（HTML/JS）
 GET  /api/check/{port}   # ポートが開いているか確認 → {"online": bool}
 POST /api/start/{name}   # 対象プロジェクトを subprocess で起動
 ```
+
+## GitHub Pages
+
+- URL: https://hirotakauoi.github.io/Hub/
+- `gh-pages` ブランチの `index.html` を配信
+- `static/index.html` を更新したら `gh-pages` ブランチにも反映すること:
+
+```bash
+cd Hub
+git checkout gh-pages
+git checkout main -- static/index.html
+cp static/index.html index.html
+git add index.html
+git commit -m "gh-pages: update"
+git push origin gh-pages
+git checkout main
+```
+
+## 動作モード
+
+`index.html` はアクセス元で自動切替:
+
+| モード | 条件 | 動作 |
+|---|---|---|
+| ローカル | `localhost` / `127.0.0.1` | 死活確認 + 起動ボタン + Demo リンク |
+| GitHub Pages | それ以外 | Render URL へのリンクのみ |
