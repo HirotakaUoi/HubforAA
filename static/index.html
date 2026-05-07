@@ -118,6 +118,8 @@
     .action-btn.open     { background: #1f6feb; color: #fff; }
     .action-btn.open:hover  { background: #388bfd; }
     .action-btn.loading  { background: #21262d; color: #484f58; cursor: default; pointer-events: none; }
+    .action-btn.demo     { background: #6e40c9; color: #fff; }
+    .action-btn.demo:hover  { background: #8957e5; }
 
     .status-text {
       font-size: 0.72rem;
@@ -143,20 +145,34 @@
 
 <div class="grid" id="grid"></div>
 
-<footer>「起動」を押すとサーバーが立ち上がります（初回は数秒かかります）</footer>
+<footer id="footer-msg"></footer>
+<script>
+  document.getElementById("footer-msg").textContent =
+    ["localhost","127.0.0.1"].includes(location.hostname)
+      ? "「起動」を押すとサーバーが立ち上がります（初回は数秒かかります）"
+      : "Render でホストされています。初回アクセス時はスリープ解除に数秒かかる場合があります。";
+</script>
 
 <script>
 const PROJECTS = [
   { name: "AAforDataStructures",         key: "aa-for-data-structures", port: 8006,
+    renderUrl: "https://aafordatastructures.onrender.com",
     desc: "データ構造（vector・連結リスト・木・グラフなど）のアルゴリズムアニメーション。Ch.3〜11、22アルゴリズム搭載。" },
   { name: "SearchBarAnimation",          key: "search-bar-animation",   port: 8004,
+    renderUrl: "https://searchbaranimation.onrender.com",
     desc: "棒グラフ形式で探索アルゴリズムをリアルタイムにアニメーション表示。" },
   { name: "AllSortAnimationByBar_JS_v3", key: "sort-animation-v3",      port: 8003,
+    renderUrl: "https://allsortanimationbybar-js-v3.onrender.com",
     desc: "JavaScript ベースのソートアニメーション (v3)。3-way クイックソート・並列クイックソートなど15アルゴリズム搭載。" },
   { name: "ArrayAnimation",              key: "array-animation",        port: 8005,
+    renderUrl: "https://arrayanimation.onrender.com",
     desc: "FastAPI + WebSocket + Canvas による配列アルゴリズム可視化ツール。探索・ソート・その他16アルゴリズムを搭載。" },
 ];
 
+// ローカル（Hub サーバー経由）か GitHub Pages かを判定
+const IS_LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
+
+// ── ローカルモード専用 ──────────────────────────────
 async function checkPort(port) {
   try {
     const res = await fetch(`/api/check/${port}`);
@@ -165,7 +181,7 @@ async function checkPort(port) {
   } catch { return false; }
 }
 
-function setStatus(port, state, url) {
+function setStatusLocal(port, state, localUrl, renderUrl) {
   const dot     = document.getElementById(`dot-${port}`);
   const st      = document.getElementById(`st-${port}`);
   const wrapper = document.getElementById(`action-wrap-${port}`);
@@ -175,7 +191,8 @@ function setStatus(port, state, url) {
   if (state === "online") {
     st.textContent = "稼働中";
     wrapper.innerHTML =
-      `<a href="${url}" class="action-btn open">開く</a>`;
+      `<a href="${localUrl}" target="_blank" class="action-btn open">開く</a>` +
+      (renderUrl ? `<a href="${renderUrl}" target="_blank" class="action-btn demo">Demo</a>` : "");
   } else if (state === "starting") {
     st.textContent = "起動中…";
     wrapper.innerHTML =
@@ -183,30 +200,57 @@ function setStatus(port, state, url) {
   } else {
     st.textContent = "停止中";
     wrapper.innerHTML =
-      `<button class="action-btn start" onclick="startProject(PROJECTS.find(p=>p.port===${port}))">起動</button>`;
+      `<button class="action-btn start" onclick="startProject(PROJECTS.find(p=>p.port===${port}))">起動</button>` +
+      (renderUrl ? `<a href="${renderUrl}" target="_blank" class="action-btn demo">Demo</a>` : "");
   }
 }
 
 async function startProject(p) {
-  setStatus(p.port, "starting", `http://localhost:${p.port}/`);
+  setStatusLocal(p.port, "starting", `http://localhost:${p.port}/`, p.renderUrl);
   try {
     await fetch(`/api/start/${p.key}`, { method: "POST" });
   } catch (e) { console.error(e); }
-  // 起動を待ってポーリング（最大20秒）
   for (let i = 0; i < 20; i++) {
     await new Promise(r => setTimeout(r, 1000));
     if (await checkPort(p.port)) {
-      setStatus(p.port, "online", `http://localhost:${p.port}/`);
+      setStatusLocal(p.port, "online", `http://localhost:${p.port}/`, p.renderUrl);
       return;
     }
   }
-  setStatus(p.port, "offline", `http://localhost:${p.port}/`);
+  setStatusLocal(p.port, "offline", `http://localhost:${p.port}/`, p.renderUrl);
 }
 
-async function render() {
+// ── GitHub Pages モード専用 ──────────────────────────
+function renderStatic() {
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
+  for (const p of PROJECTS) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="status-dot online"></div>
+        <span class="card-title">${p.name}</span>
+      </div>
+      <p class="card-desc">${p.desc}</p>
+      <div class="card-footer">
+        <div>
+          <span class="port-badge">Render</span>
+          <div class="status-text online">公開中</div>
+        </div>
+        <div>
+          <a href="${p.renderUrl}" target="_blank" class="action-btn open">開く</a>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  }
+}
 
+// ── 共通: カード描画 ─────────────────────────────────
+async function renderLocal() {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
   for (const p of PROJECTS) {
     const card = document.createElement("div");
     card.className = "card";
@@ -225,24 +269,29 @@ async function render() {
       </div>
     `;
     grid.appendChild(card);
-
-    // ステータス確認してボタンを初期化
-    const url = `http://localhost:${p.port}/`;
-    checkPort(p.port).then(online => setStatus(p.port, online ? "online" : "offline", url));
+    const localUrl = `http://localhost:${p.port}/`;
+    checkPort(p.port).then(online =>
+      setStatusLocal(p.port, online ? "online" : "offline", localUrl, p.renderUrl)
+    );
   }
 }
 
-render();
-// 10秒ごとにステータスを再確認
-setInterval(() => {
-  PROJECTS.forEach(p => {
-    const url = `http://localhost:${p.port}/`;
-    const wrap = document.getElementById(`action-wrap-${p.port}`);
-    if (!wrap?.querySelector('.loading')) {
-      checkPort(p.port).then(online => setStatus(p.port, online ? "online" : "offline", url));
-    }
-  });
-}, 10000);
+if (IS_LOCAL) {
+  renderLocal();
+  setInterval(() => {
+    PROJECTS.forEach(p => {
+      const wrap = document.getElementById(`action-wrap-${p.port}`);
+      if (!wrap?.querySelector('.loading')) {
+        const localUrl = `http://localhost:${p.port}/`;
+        checkPort(p.port).then(online =>
+          setStatusLocal(p.port, online ? "online" : "offline", localUrl, p.renderUrl)
+        );
+      }
+    });
+  }, 10000);
+} else {
+  renderStatic();
+}
 </script>
 
 </body>
