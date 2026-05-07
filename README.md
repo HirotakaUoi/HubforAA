@@ -29,7 +29,6 @@
 ## ローカルでの起動
 
 ```bash
-cd HubforAA
 uv run uvicorn main:app --port 8010
 ```
 
