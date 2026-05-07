@@ -1,4 +1,4 @@
-# Hub
+# HubforAA
 
 各プロジェクトのサーバーをブラウザから起動・管理するポータルアプリ。
 
@@ -43,12 +43,12 @@ POST /api/start/{name}   # 対象プロジェクトを subprocess で起動
 
 ## GitHub Pages
 
-- URL: https://hirotakauoi.github.io/Hub/
+- URL: https://hirotakauoi.github.io/HubforAA/
 - `gh-pages` ブランチの `index.html` を配信
 - `static/index.html` を更新したら `gh-pages` ブランチにも反映すること:
 
 ```bash
-cd Hub
+cd HubforAA
 git checkout gh-pages
 git checkout main -- static/index.html
 cp static/index.html index.html
