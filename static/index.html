@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AA by Python for CC — プロジェクト一覧</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      min-height: 100vh;
+      padding: 40px 24px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: #e6edf3;
+      margin-bottom: 8px;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #6e7681;
+      margin-bottom: 40px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+    .card:hover { border-color: #4472C4; transform: translateY(-2px); }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #3a4a3a;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .status-dot.online  { background: #3fb950; box-shadow: 0 0 6px #3fb95080; }
+    .status-dot.offline { background: #f85149; }
+    .status-dot.starting { background: #d29922; box-shadow: 0 0 6px #d2992280;
+                           animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #e6edf3;
+    }
+
+    .card-desc {
+      font-size: 0.82rem;
+      color: #8b949e;
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+      gap: 8px;
+    }
+
+    .port-badge {
+      font-size: 0.75rem;
+      font-family: monospace;
+      color: #79c0ff;
+      background: #0d1f37;
+      border: 1px solid #1f3b5a;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .action-btn {
+      padding: 6px 18px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .action-btn.start    { background: #238636; color: #fff; }
+    .action-btn.start:hover { background: #2ea043; }
+    .action-btn.open     { background: #1f6feb; color: #fff; }
+    .action-btn.open:hover  { background: #388bfd; }
+    .action-btn.loading  { background: #21262d; color: #484f58; cursor: default; pointer-events: none; }
+
+    .status-text {
+      font-size: 0.72rem;
+      color: #6e7681;
+      margin-top: 2px;
+    }
+    .status-text.online   { color: #3fb950; }
+    .status-text.offline  { color: #f85149; }
+    .status-text.starting { color: #d29922; }
+
+    footer {
+      text-align: center;
+      margin-top: 48px;
+      font-size: 0.75rem;
+      color: #484f58;
+    }
+  </style>
+</head>
+<body>
+
+<h1>AA by Python for CC</h1>
+<p class="subtitle">アルゴリズムアニメーション プロジェクト一覧</p>
+
+<div class="grid" id="grid"></div>
+
+<footer>「起動」を押すとサーバーが立ち上がります（初回は数秒かかります）</footer>
+
+<script>
+const PROJECTS = [
+  { name: "AAforDataStructures",         key: "aa-for-data-structures", port: 8006,
+    desc: "データ構造（vector・連結リスト・木・グラフなど）のアルゴリズムアニメーション。Ch.3〜11、22アルゴリズム搭載。" },
+  { name: "SearchBarAnimation",          key: "search-bar-animation",   port: 8004,
+    desc: "棒グラフ形式で探索アルゴリズムをリアルタイムにアニメーション表示。" },
+  { name: "AllSortAnimationByBar_JS_v3", key: "sort-animation-v3",      port: 8003,
+    desc: "JavaScript ベースのソートアニメーション (v3)。3-way クイックソート・並列クイックソートなど15アルゴリズム搭載。" },
+  { name: "ArrayAnimation",              key: "array-animation",        port: 8005,
+    desc: "FastAPI + WebSocket + Canvas による配列アルゴリズム可視化ツール。探索・ソート・その他16アルゴリズムを搭載。" },
+];
+
+async function checkPort(port) {
+  try {
+    const res = await fetch(`/api/check/${port}`);
+    const data = await res.json();
+    return data.online;
+  } catch { return false; }
+}
+
+function setStatus(port, state, url) {
+  const dot     = document.getElementById(`dot-${port}`);
+  const st      = document.getElementById(`st-${port}`);
+  const wrapper = document.getElementById(`action-wrap-${port}`);
+  dot.className = `status-dot ${state}`;
+  st.className  = `status-text ${state}`;
+
+  if (state === "online") {
+    st.textContent = "稼働中";
+    wrapper.innerHTML =
+      `<a href="${url}" class="action-btn open">開く</a>`;
+  } else if (state === "starting") {
+    st.textContent = "起動中…";
+    wrapper.innerHTML =
+      `<button class="action-btn loading" disabled>起動中…</button>`;
+  } else {
+    st.textContent = "停止中";
+    wrapper.innerHTML =
+      `<button class="action-btn start" onclick="startProject(PROJECTS.find(p=>p.port===${port}))">起動</button>`;
+  }
+}
+
+async function startProject(p) {
+  setStatus(p.port, "starting", `http://localhost:${p.port}/`);
+  try {
+    await fetch(`/api/start/${p.key}`, { method: "POST" });
+  } catch (e) { console.error(e); }
+  // 起動を待ってポーリング（最大20秒）
+  for (let i = 0; i < 20; i++) {
+    await new Promise(r => setTimeout(r, 1000));
+    if (await checkPort(p.port)) {
+      setStatus(p.port, "online", `http://localhost:${p.port}/`);
+      return;
+    }
+  }
+  setStatus(p.port, "offline", `http://localhost:${p.port}/`);
+}
+
+async function render() {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+
+  for (const p of PROJECTS) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="status-dot" id="dot-${p.port}"></div>
+        <span class="card-title">${p.name}</span>
+      </div>
+      <p class="card-desc">${p.desc}</p>
+      <div class="card-footer">
+        <div>
+          <span class="port-badge">:${p.port}</span>
+          <div class="status-text" id="st-${p.port}">確認中…</div>
+        </div>
+        <div id="action-wrap-${p.port}"></div>
+      </div>
+    `;
+    grid.appendChild(card);
+
+    // ステータス確認してボタンを初期化
+    const url = `http://localhost:${p.port}/`;
+    checkPort(p.port).then(online => setStatus(p.port, online ? "online" : "offline", url));
+  }
+}
+
+render();
+// 10秒ごとにステータスを再確認
+setInterval(() => {
+  PROJECTS.forEach(p => {
+    const url = `http://localhost:${p.port}/`;
+    const wrap = document.getElementById(`action-wrap-${p.port}`);
+    if (!wrap?.querySelector('.loading')) {
+      checkPort(p.port).then(online => setStatus(p.port, online ? "online" : "offline", url));
+    }
+  });
+}, 10000);
+</script>
+
+</body>
+</html>
