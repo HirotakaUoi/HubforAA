@@ -11,7 +11,7 @@
 各プロジェクトへのリンク集として機能します。
 
 - **GitHub Pages でアクセスした場合** — Render にデプロイされた各プロジェクトへのリンクを表示
-- **ローカルで起動した場合（`localhost:8001`）** — ローカルサーバーの死活確認・起動ボタン・Render Demo リンクを表示
+- **ローカルで起動した場合（`localhost:8010`）** — ローカルサーバーの死活確認・起動ボタン・Render Demo リンクを表示
 
 ---
 
@@ -30,10 +30,10 @@
 
 ```bash
 cd HubforAA
-uv run uvicorn main:app --port 8001
+uv run uvicorn main:app --port 8010
 ```
 
-ブラウザで http://localhost:8001 を開いてください。
+ブラウザで http://localhost:8010 を開いてください。
 
 > **前提:** 各プロジェクトが HubforAA と同じ親フォルダ内に配置されている必要があります。
 
@@ -43,7 +43,7 @@ uv run uvicorn main:app --port 8001
 
 ```
 [ブラウザ]
-    │  localhost:8001（ローカル時）
+    │  localhost:8010（ローカル時）
     ▼
 [FastAPI / main.py]  ── /api/check/{port}  → ポート疎通確認
     │                ── /api/start/{name}  → subprocess で子サーバー起動

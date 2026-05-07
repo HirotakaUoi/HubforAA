@@ -5,10 +5,10 @@
 ## 起動
 
 ```bash
-uvicorn main:app --port 8001
+uvicorn main:app --port 8010
 ```
 
-ブラウザ: http://localhost:8001
+ブラウザ: http://localhost:8010
 
 ## 機能
 
