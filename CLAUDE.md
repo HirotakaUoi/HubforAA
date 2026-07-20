@@ -16,8 +16,9 @@ uvicorn main:app --port 8010
 8010番が応答しない場合のみサーバーを起動（`.venv/bin/uvicorn`、最大15秒待機）し、
 既定ブラウザで Hub ページを開く。起動済みならブラウザ表示のみ（二重起動しない）。
 
-- 現在バージョン: **v1.2**（v1.0 初版 / v1.1 フォールバックをマシン別候補リスト化 /
-  v1.2 .venv が別マシン製で壊れている場合を検知して uv 等へフォールバック）
+- 現在バージョン: **v1.3**（v1.0 初版 / v1.1 フォールバックをマシン別候補リスト化 /
+  v1.2 .venv が別マシン製で壊れている場合を検知して uv 等へフォールバック /
+  v1.3 ログを `~/Library/Logs/HubforAA/` へ移動）
 - **注意**: `.venv` は Dropbox で同期されるが、中身は作成マシン専用の絶対パス
   （スクリプトの shebang・python シンボリックリンク）を含むため他マシンでは動かない。
   ランチャーは「python が実際に動くか」を確認してから .venv を使い、ダメなら
@@ -30,7 +31,8 @@ uvicorn main:app --port 8010
 - 実体はシェルスクリプト: `HubforAA.app/Contents/MacOS/HubforAA`
 - 自分の位置からプロジェクトルートを逆算するため Dropbox 同期先の別マシンでも動作
   （移動された場合は標準パスにフォールバック）
-- 起動ログ: `HubforAA/hub_launcher.log`（git 管理外）
+- 起動ログ: `~/Library/Logs/HubforAA/hub_launcher.log`
+  （v1.3 から。Dropbox 同期を避けるためプロジェクト外に出力）
 - 別マシンで「開けない」場合は `chmod +x HubforAA.app/Contents/MacOS/HubforAA` を一度実行
 
 ## 機能
