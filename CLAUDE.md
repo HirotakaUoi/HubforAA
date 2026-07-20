@@ -16,6 +16,11 @@ uvicorn main:app --port 8010
 8010番が応答しない場合のみサーバーを起動（`.venv/bin/uvicorn`、最大15秒待機）し、
 既定ブラウザで Hub ページを開く。起動済みならブラウザ表示のみ（二重起動しない）。
 
+- 現在バージョン: **v1.1**（v1.0 初版 / v1.1 フォールバックをマシン別候補リスト化）
+- **版数管理ルール**: .app を変更したら、スクリプト冒頭コメントの版数と
+  `Info.plist` の `CFBundleVersion` / `CFBundleShortVersionString` を必ず上げ、
+  `touch HubforAA.app` でバンドルの更新日時も合わせる
+  （Finder は最上位フォルダの日時しか表示しないため）
 - 実体はシェルスクリプト: `HubforAA.app/Contents/MacOS/HubforAA`
 - 自分の位置からプロジェクトルートを逆算するため Dropbox 同期先の別マシンでも動作
   （移動された場合は標準パスにフォールバック）
