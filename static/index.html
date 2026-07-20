@@ -120,6 +120,9 @@
     .action-btn.loading  { background: #21262d; color: #484f58; cursor: default; pointer-events: none; }
     .action-btn.demo     { background: #6e40c9; color: #fff; }
     .action-btn.demo:hover  { background: #8957e5; }
+    /* ローカル稼働中は Render リンクを控えめ表示（主ボタンは「開く」） */
+    .action-btn.demo.secondary        { background: transparent; color: #8957e5; border: 1px solid #6e40c9; }
+    .action-btn.demo.secondary:hover  { background: #6e40c9; color: #fff; }
 
     .status-text {
       font-size: 0.72rem;
@@ -192,7 +195,7 @@ function setStatusLocal(port, state, localUrl, renderUrl) {
     st.textContent = "稼働中";
     wrapper.innerHTML =
       `<a href="${localUrl}" target="_blank" class="action-btn open">開く</a>` +
-      (renderUrl ? `<a href="${renderUrl}" target="_blank" class="action-btn demo">Demo</a>` : "");
+      (renderUrl ? `<a href="${renderUrl}" target="_blank" class="action-btn demo secondary">Render</a>` : "");
   } else if (state === "starting") {
     st.textContent = "起動中…";
     wrapper.innerHTML =
@@ -201,7 +204,7 @@ function setStatusLocal(port, state, localUrl, renderUrl) {
     st.textContent = "停止中";
     wrapper.innerHTML =
       `<button class="action-btn start" onclick="startProject(PROJECTS.find(p=>p.port===${port}))">起動</button>` +
-      (renderUrl ? `<a href="${renderUrl}" target="_blank" class="action-btn demo">Demo</a>` : "");
+      (renderUrl ? `<a href="${renderUrl}" target="_blank" class="action-btn demo">Render</a>` : "");
   }
 }
 
