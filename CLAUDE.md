@@ -10,6 +10,18 @@ uvicorn main:app --port 8010
 
 ブラウザ: http://localhost:8010
 
+### ダブルクリック起動（macOS）
+
+プロジェクトルート直下の **`HubforAA.app`** をダブルクリックすると、
+8010番が応答しない場合のみサーバーを起動（`.venv/bin/uvicorn`、最大15秒待機）し、
+既定ブラウザで Hub ページを開く。起動済みならブラウザ表示のみ（二重起動しない）。
+
+- 実体はシェルスクリプト: `HubforAA.app/Contents/MacOS/HubforAA`
+- 自分の位置からプロジェクトルートを逆算するため Dropbox 同期先の別マシンでも動作
+  （移動された場合は標準パスにフォールバック）
+- 起動ログ: `HubforAA/hub_launcher.log`（git 管理外）
+- 別マシンで「開けない」場合は `chmod +x HubforAA.app/Contents/MacOS/HubforAA` を一度実行
+
 ## 機能
 
 - 各プロジェクトの死活確認（`/api/check/{port}`）
