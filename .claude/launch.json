@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "hub-for-aa",
-      "runtimeExecutable": "/Users/uoi/.local/bin/uv",
-      "runtimeArgs": ["run", "uvicorn", "main:app", "--port", "8010"],
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": ["../run_server.sh", ".", "8010"],
       "port": 8010
     }
   ]

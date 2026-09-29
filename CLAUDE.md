@@ -5,7 +5,7 @@
 ## 起動
 
 ```bash
-uvicorn main:app --port 8010
+./run_server.sh HubforAA 8010    # プロジェクトルートから
 ```
 
 ブラウザ: http://localhost:8010
@@ -13,17 +13,15 @@ uvicorn main:app --port 8010
 ### ダブルクリック起動（macOS）
 
 プロジェクトルート直下の **`HubforAA.app`** をダブルクリックすると、
-8010番が応答しない場合のみサーバーを起動（`.venv/bin/uvicorn`、最大15秒待機）し、
+8010番が応答しない場合のみサーバーを起動（`run_server.sh` 経由、最大60秒待機）し、
 既定ブラウザで Hub ページを開く。起動済みならブラウザ表示のみ（二重起動しない）。
 
-- 現在バージョン: **v1.3**（v1.0 初版 / v1.1 フォールバックをマシン別候補リスト化 /
+- 現在バージョン: **v1.4**（v1.0 初版 / v1.1 フォールバックをマシン別候補リスト化 /
   v1.2 .venv が別マシン製で壊れている場合を検知して uv 等へフォールバック /
-  v1.3 ログを `~/Library/Logs/HubforAA/` へ移動）
-- **注意**: `.venv` は Dropbox で同期されるが、中身は作成マシン専用の絶対パス
-  （スクリプトの shebang・python シンボリックリンク）を含むため他マシンでは動かない。
-  ランチャーは「python が実際に動くか」を確認してから .venv を使い、ダメなら
-  `uv run` → システム python3 の順でフォールバックする（uvicorn スクリプトは
-  シェバン問題を避けるため経由せず、常に `python -m uvicorn` で起動）
+  v1.3 ログを `~/Library/Logs/HubforAA/` へ移動 /
+  v1.4 起動を共通スクリプト `run_server.sh` に委譲）
+- `.venv` の扱い（Dropbox 同期で全マシン共有）はルートの `CLAUDE.md`
+  「.venv の共有方式」を参照
 - **版数管理ルール**: .app を変更したら、スクリプト冒頭コメントの版数と
   `Info.plist` の `CFBundleVersion` / `CFBundleShortVersionString` を必ず上げ、
   `touch HubforAA.app` でバンドルの更新日時も合わせる
@@ -65,6 +63,12 @@ static/     # ポータル UI（HTML/JS）
 GET  /api/check/{port}   # ポートが開いているか確認 → {"online": bool}
 POST /api/start/{name}   # 対象プロジェクトを subprocess で起動
 ```
+
+`/api/start` はルートの共通スクリプト `run_server.sh <プロジェクト> <ポート>` を
+起動するだけ（.venv の確認・Python 本体の導入・relocatable での作り直しはスクリプト側）。
+Hub 自身の python（`sys.executable`）は使わない。以前はそれを使っていたため、稼働中に
+Hub の `.venv` が別マシン製に差し替わる（Dropbox 同期）と全プロジェクトが起動不能に
+なっていた（2026-09-29 修正）。画面側は最大60秒待ち、起動しなければダイアログで通知する。
 
 ## GitHub Pages
 

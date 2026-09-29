@@ -211,16 +211,27 @@ function setStatusLocal(port, state, localUrl, renderUrl) {
 async function startProject(p) {
   setStatusLocal(p.port, "starting", `http://localhost:${p.port}/`, p.renderUrl);
   try {
-    await fetch(`/api/start/${p.key}`, { method: "POST" });
+    const res = await fetch(`/api/start/${p.key}`, { method: "POST" });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      startFailed(p, err.detail ?? `HTTP ${res.status}`);
+      return;
+    }
   } catch (e) { console.error(e); }
-  for (let i = 0; i < 20; i++) {
+  // 別マシンで初めて起動する場合は Python の導入や .venv の作り直しで時間がかかるため最大60秒待つ
+  for (let i = 0; i < 60; i++) {
     await new Promise(r => setTimeout(r, 1000));
     if (await checkPort(p.port)) {
       setStatusLocal(p.port, "online", `http://localhost:${p.port}/`, p.renderUrl);
       return;
     }
   }
+  startFailed(p, "60秒待っても応答がありません");
+}
+
+function startFailed(p, reason) {
   setStatusLocal(p.port, "offline", `http://localhost:${p.port}/`, p.renderUrl);
+  alert(`${p.name} を起動できませんでした。\n${reason}\n\nログ: ~/Library/Logs/HubforAA/hub_launcher.log`);
 }
 
 // ── GitHub Pages モード専用 ──────────────────────────

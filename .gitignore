@@ -3,3 +3,5 @@ __pycache__/
 .venv/
 *.egg-info/
 hub_launcher.log
+# ローカル開発用の Python 固定（Dropbox で同期。Render は render.yaml の PYTHON_VERSION を使う）
+.python-version
