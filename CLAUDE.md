@@ -72,19 +72,22 @@ Hub の `.venv` が別マシン製に差し替わる（Dropbox 同期）と全�
 
 ## GitHub Pages
 
-- URL: https://hirotakauoi.github.io/HubforAA/
-- `gh-pages` ブランチの `index.html` を配信
-- `static/index.html` を更新したら `gh-pages` ブランチにも反映すること:
+- URL: https://algorithm-animation-hub.fishbone.jp/ （カスタムドメイン。gh-pages の `CNAME`。
+  旧 URL https://hirotakauoi.github.io/HubforAA/ はここへ 301 転送される）
+- `gh-pages` ブランチの `index.html` を配信（ほかに `CNAME` があるので消さないこと）
+- `static/index.html` を更新したら `gh-pages` ブランチにも反映すること。
+  このフォルダは Hub サーバーが使用中かつ Dropbox 同期中なので、`git checkout gh-pages` で
+  作業ツリーを切り替えず、**別の場所に worktree を作って**反映する:
 
 ```bash
 cd HubforAA
-git checkout gh-pages
-git checkout main -- static/index.html
-cp static/index.html index.html
-git add index.html
-git commit -m "gh-pages: update"
-git push origin gh-pages
-git checkout main
+git fetch origin
+W=$(mktemp -d)/gh-pages
+git worktree add -B gh-pages "$W" origin/gh-pages
+git show main:static/index.html > "$W/index.html"
+git -C "$W" commit -am "gh-pages: main の static/index.html を反映"
+git -C "$W" push origin gh-pages
+git worktree remove "$W"
 ```
 
 ## 動作モード
@@ -93,5 +96,5 @@ git checkout main
 
 | モード | 条件 | 動作 |
 |---|---|---|
-| ローカル | `localhost` / `127.0.0.1` | 死活確認 + 起動ボタン + Demo リンク |
+| ローカル | `localhost` / `127.0.0.1` | 死活確認 + 起動ボタン + Render リンク |
 | GitHub Pages | それ以外 | Render URL へのリンクのみ |
