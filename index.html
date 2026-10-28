@@ -139,6 +139,10 @@
       font-size: 0.75rem;
       color: #484f58;
     }
+    footer .copyright {
+      margin-top: 8px;
+      color: #6e7681;
+    }
   </style>
 </head>
 <body>
@@ -148,7 +152,10 @@
 
 <div class="grid" id="grid"></div>
 
-<footer id="footer-msg"></footer>
+<footer>
+  <p id="footer-msg"></p>
+  <p class="copyright">&copy; 2026 Hirotaka Uoi. All rights reserved.</p>
+</footer>
 <script>
   document.getElementById("footer-msg").textContent =
     ["localhost","127.0.0.1"].includes(location.hostname)
