@@ -123,6 +123,8 @@
     /* ローカル稼働中は Render リンクを控えめ表示（主ボタンは「開く」） */
     .action-btn.demo.secondary        { background: transparent; color: #8957e5; border: 1px solid #6e40c9; }
     .action-btn.demo.secondary:hover  { background: #6e40c9; color: #fff; }
+    .action-btn.restart  { background: #b08800; color: #fff; }
+    .action-btn.restart:hover { background: #d4a800; }
 
     .status-text {
       font-size: 0.72rem;
@@ -202,6 +204,7 @@ function setStatusLocal(port, state, localUrl, renderUrl) {
     st.textContent = "稼働中";
     wrapper.innerHTML =
       `<a href="${localUrl}" target="_blank" class="action-btn open">開く</a>` +
+      `<button class="action-btn restart" onclick="restartProject(PROJECTS.find(p=>p.port===${port}))">再起動</button>` +
       (renderUrl ? `<a href="${renderUrl}" target="_blank" class="action-btn demo secondary">Render</a>` : "");
   } else if (state === "starting") {
     st.textContent = "起動中…";
@@ -226,6 +229,22 @@ async function startProject(p) {
     }
   } catch (e) { console.error(e); }
   // 別マシンで初めて起動する場合は Python の導入や .venv の作り直しで時間がかかるため最大60秒待つ
+  for (let i = 0; i < 60; i++) {
+    await new Promise(r => setTimeout(r, 1000));
+    if (await checkPort(p.port)) {
+      setStatusLocal(p.port, "online", `http://localhost:${p.port}/`, p.renderUrl);
+      return;
+    }
+  }
+  startFailed(p, "60秒待っても応答がありません");
+}
+
+async function restartProject(p) {
+  setStatusLocal(p.port, "starting", `http://localhost:${p.port}/`, p.renderUrl);
+  document.getElementById(`st-${p.port}`).textContent = "再起動中…";
+  try {
+    await fetch(`/api/restart/${p.key}`, { method: "POST" });
+  } catch (e) { console.error(e); }
   for (let i = 0; i < 60; i++) {
     await new Promise(r => setTimeout(r, 1000));
     if (await checkPort(p.port)) {
